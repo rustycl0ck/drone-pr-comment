@@ -32,7 +32,8 @@ var (
 	repoName      = kingpin.Flag("repo-name", "Repository name").Envar("DRONE_REPO_NAME").String()
 	prNumber      = kingpin.Flag("issue-number", "Pull-Request or Issue number").Envar("DRONE_PULL_REQUEST").String()
 	commentString = kingpin.Flag("comment", "Comment text").Envar("PLUGIN_COMMENT_TEXT").String()
-	commentFile   = kingpin.Flag("comment-file", "Comment text will be read from this file").Envar("PLUGIN_COMMMENT_FILE").ExistingFile()
+	commentFile   = kingpin.Flag("comment-file", "Comment text will be read from this file").Envar("PLUGIN_COMMENT_FILE").ExistingFile()
+	wrapAsCode    = kingpin.Flag("wrap-as-code", "Wrap the comment text in tripe backticks for rendering as markdown code").Envar("PLUGIN_COMMENT_WRAP_AS_CODE").Default("false").Bool()
 )
 
 func main() {
@@ -43,6 +44,10 @@ func main() {
 	level.Info(logger).Log("msg", "Version info", "git_summary", GitSummary, "git_commit", GitCommit, "git_branch", GitBranch, "build_date", BuildDate)
 
 	var comment string
+	if *wrapAsCode {
+		comment = comment + "```\n"
+	}
+
 	if *commentString != "" {
 		comment = *commentString
 	}
@@ -53,6 +58,9 @@ func main() {
 		} else {
 			comment = comment + string(s)
 		}
+	}
+	if *wrapAsCode {
+		comment = comment + "\n```\n"
 	}
 	level.Info(logger).Log("comment", comment)
 

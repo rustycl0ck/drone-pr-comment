@@ -35,4 +35,8 @@ steps:
     - refs/heads/main
     - refs/tags/*
 
+---
+kind: signature
+hmac: c082e45062860f6f0cd48119ba2a95138b61d03def9c6b18e5e759a7d86201ea
+
 ...

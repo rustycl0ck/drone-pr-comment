@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -17,8 +18,11 @@ import (
 	"github.com/go-kit/kit/log/level"
 )
 
+// provided by govvv at build time
+var GitCommit, GitBranch, GitSummary, BuildDate string
+
 var (
-	logger        = log.NewJSONLogger(os.Stdout)
+	logger        = log.With(log.NewJSONLogger(os.Stdout), "time", log.DefaultTimestampUTC, "caller", log.DefaultCaller)
 	rsaKeyFile    = kingpin.Flag("rsa-key-file", "RSA private key file").Envar("PLUGIN_RSA_KEY_FILE").ExistingFile()
 	rsaKeyString  = kingpin.Flag("rsa-key", "RSA private key").Envar("PLUGIN_RSA_KEY").String()
 	appID         = kingpin.Flag("app-id", "Github App ID").Envar("PLUGIN_APP_ID").String()
@@ -32,8 +36,11 @@ var (
 )
 
 func main() {
-	logger = log.With(logger, "ts", log.DefaultTimestampUTC, "caller", log.DefaultCaller)
+	version := fmt.Sprintf("%10s: %s\n%10s: %s\n%10s: %s\n%10s: %s\n", "version", GitSummary, "build_date", BuildDate, "branch", GitBranch, "commit", GitCommit)
+	kingpin.Version(version)
 	kingpin.Parse()
+
+	level.Info(logger).Log("msg", "Version info", "git_summary", GitSummary, "git_commit", GitCommit, "git_branch", GitBranch, "build_date", BuildDate)
 
 	var comment string
 	if *commentString != "" {
@@ -80,13 +87,13 @@ func postComment(token, comment string) {
 	}
 	req.Header.Add("Authorization", "Bearer "+token)
 	req.Header.Add("Accept", "application/vnd.github.v3+json")
-	resp, err := client.Do(req)
+	_, err = client.Do(req)
 	if err != nil {
 		level.Error(logger).Log("msg", "Failed to get reponse from server", "err", err)
 		os.Exit(1)
 	}
-	body, err := ioutil.ReadAll(resp.Body)
-	level.Debug(logger).Log("response", string(body), "request", req.URL)
+	// body, err := ioutil.ReadAll(resp.Body)
+	// level.Debug(logger).Log("response", string(body), "request", req.URL)
 }
 
 func getJWT() string {
@@ -155,7 +162,7 @@ func getAppInstallationID() string {
 	if err != nil {
 		level.Error(logger).Log("msg", "Failed to read response body", "err", err)
 	}
-	level.Debug(logger).Log("response", string(body), "request", req.URL)
+	// level.Debug(logger).Log("response", string(body), "request", req.URL)
 
 	var respObj map[string]interface{}
 	if err := json.Unmarshal(body, &respObj); err != nil {
@@ -201,7 +208,7 @@ func getToken(installationID string) string {
 	if err != nil {
 		level.Error(logger).Log("msg", "Failed to read response body", "err", err)
 	}
-	level.Debug(logger).Log("response", string(body), "request", req.URL)
+	// level.Debug(logger).Log("response", string(body), "request", req.URL)
 
 	var respObj map[string]interface{}
 	if err := json.Unmarshal(body, &respObj); err != nil {

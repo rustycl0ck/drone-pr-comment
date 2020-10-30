@@ -1,0 +1,38 @@
+---
+kind: pipeline
+name: default
+
+platform:
+  os: linux
+  arch: amd64
+
+steps:
+- name: build_image_PR
+  image: plugins/docker
+  settings:
+    dry_run: true
+  when:
+    event:
+    - pull_request
+    ref:
+    - refs/heads/main
+    - refs/tags/*
+
+- name: build_image
+  image: plugins/docker
+  settings:
+    auto_tag: true
+    repo: rustycl0ck/drone-github-comment
+    password:
+      from_secret: docker_password
+    username:
+      from_secret: docker_username
+  when:
+    event:
+    - tag
+    - push
+    ref:
+    - refs/heads/main
+    - refs/tags/*
+
+...

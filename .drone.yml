@@ -6,17 +6,32 @@ platform:
   os: linux
   arch: amd64
 
+trigger:
+  branch:
+  - main
+
 steps:
 - name: build_image_PR
   image: plugins/docker
   settings:
     dry_run: true
+    repo: rustycl0ck/drone-github-comment
   when:
     event:
     - pull_request
-    ref:
-    - refs/heads/main
-    - refs/tags/*
+
+- name: test
+  image: golang
+  settings:
+    app_id:
+      from_secret: test_app_id
+    rsa_key:
+      from_secret: test_rsa_key
+  commands:
+    - make test
+  when:
+    event:
+    - pull_request
 
 - name: build_image
   image: plugins/docker
@@ -31,12 +46,8 @@ steps:
     event:
     - tag
     - push
-    ref:
-    - refs/heads/main
-    - refs/tags/*
-
 ---
 kind: signature
-hmac: c082e45062860f6f0cd48119ba2a95138b61d03def9c6b18e5e759a7d86201ea
+hmac: fbade69a0f87b9f43746199b68161cc5a6b3e72fe3b3545df713b30d8dd593b2
 
 ...

@@ -12,7 +12,7 @@ deps:
 .PHONY: build
 build: clean deps ## Build the program for Linux
 	@echo "==> Building the program for Linux"
-	$(GOFLAGS) CGO_ENABLED=0 GOOS=linux govvv build -v -a -o $(PROGRAM)
+	$(GOFLAGS) CGO_ENABLED=0 GOOS=linux govvv build -v -o $(PROGRAM)
 
 clean: ## Clean temporary files
 	@echo "==> Cleaning temporary files"

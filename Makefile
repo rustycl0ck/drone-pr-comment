@@ -10,7 +10,7 @@ deps:
 	if ! command -V govvv; then go get -u github.com/ahmetb/govvv; go mod tidy; fi
 
 .PHONY: build
-build: clean deps ## Build the program for Linux
+build: deps ## Build the program for Linux
 	@echo "==> Building the program for Linux"
 	$(GOFLAGS) CGO_ENABLED=0 GOOS=linux govvv build -v -o $(PROGRAM)
 
